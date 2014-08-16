@@ -6,7 +6,7 @@ from main import *
 
 # experimental tkinter interface - incomplete and currently designed for function testing, not ease of use.
 # To be superceded by an eventual Java interface.
-
+# won't work directly as image files need to be replaced.
 def submit():
     print(bankVar.get())
 
