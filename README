@@ -1,12 +1,16 @@
 This is a personal finance package I started to automate my own financial analysis and to cut out any human error from doing it manually.
 
-Originally this project was intended to be a Python VBA mashup so that most of the analysis could be done in Excel after Python compiled the CSVs into a unified format. However the intention changed so that I am now aiming to complete the entire project in Python. The main motivation for this is firstly to learn how to use Python better and play with a few new libraries. Ultimately this would also allow the use of the NumPy/SciPy libraries to create a more advanced method of analysis of the data. It will also allow a convenient interface to interact with the data in Python.
+Originally this project was intended to be a Python VBA mashup so that most of the analysis could be done in Excel after Python compiled the CSVs into a unified format. 
+
+However the intention changed so that I am now aiming to complete the entire project in Python and some other languages. The main motivation for this is firstly to learn how to use Python better and play with a few new libraries. Ultimately this would also allow the use of the NumPy/SciPy libraries to create a more advanced method of analysis of the data. It will also allow a convenient interface to interact with the data in Python.
 
 So far I have split this project into 5 phases:
 
-Phase 1 - Create a compiling programme to unify the various different CSV styles from each bank.
+Phase 1 - Create a compiling programme to unify the various different CSV styles from each bank 
+        - This has now been expanded to include QIF and OFX.
 
-Phase 2 - Create a basic user interface with TKinter for the compiler. This will add further functionality and control over the compiler and how the data is formatted.
+Phase 2 - Create a basic user interface with TKinter for the compiler. This will add further functionality and control over the compiler and how the data is formatted. 
+        - This has now been expanded to a possible Java interface.
 
 Phase 3 - Create a graphical UI with MatPlotLib to allow visualisation of the data - at this point the project should be useable for basic purposes without having to import master files to Excel/Calc.
 
@@ -14,6 +18,10 @@ Phase 4 - Create an interface to script Python codes allowing modelling and furt
 
 Phase 5 - Package the programme for all OS's, test and write up documentation.
 
-At this point in time Phase 1 is complete (provisionally), althoguh the only banks being used so far are HSBC and Halifax (both UK). - 13/04/2014 - Nick
+Current possibilities:
+
+Add in a Chromium based browser to the interface. Create an applet to scrape statement information directly off of the internet.
+
+Possibly integrate live checking while online for increased security.
 
 
