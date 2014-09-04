@@ -2,29 +2,150 @@ from Statement_Classes import *
 
 store = {}
 
+'''
+////////////////////////////////////////////Start format Standardisation Functions\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'''
 
-def key_maker(lister, special_lister):
-    """
-    need to make a function which creates a key list from the new transactions found on this cycle
+def OFX(filename, dates, organiser, account):
+    global keylist
+    global specials_list
+    global numDict
 
-    (dict) ---> csv
-    """
-    with open("keys.csv", "w") as keys_file:
-        key_writer = csv.writer(keys_file)
-        for key in lister.keys():
-            key_writer.writerow([key, lister[key][0], lister[key][1]])
+    transactions = []
 
-    with open("specials.csv", "w") as specials_file:
-        specials_writer = csv.writer(specials_file)
-        for special_type in special_lister:
-            specials_writer.writerow([special_type])
+    types = list(numDict.keys())
+
+    with open(filename, 'r') as old:
+
+        intrans = False
+
+        for line in old:
+            line = line.lstrip()
+            if intrans:
+                if line.startswith('</STMTTRN>'):
+                    intrans = False
+
+                    for combo in [trans_name + trans_memo, trans_name + ' ' + trans_memo, trans_name, trans_memo]:
+                        if '&amp;' in combo:
+                            combo = combo.replace('&amp;', '&')
+                        if combo in keylist:
+                            print('found', combo)
+                            use = combo
+                            break
+                        elif combo in specials_list:
+                            use = combo
+                            break
+                    else:
+                        use = (trans_name + ' ' + trans_memo)
+
+                        specialness = input(use + " for " + str(newtrans["amount"]) + " on " + newtrans['date'] +
+                                            " is not a recognised transaction. Is this a generic transaction" +
+                                            " or part of a group of transactions? ")
+
+                        if specialness:
+                            special_key = input(
+                                "What common phrase or word can be seen in all transactions within this group? ")
+
+                            if not special_key.upper() in use.upper():
+                                is_keyable = False
+                                while not is_keyable:
+                                    special_key = input(
+                                        special_key +
+                                        " isn't in this transaction. Please pick a group of characters which will " +
+                                        "always be found within this transaction and not in any other transaction. ")
+                                    if special_key.upper() in use.upper():
+                                        is_keyable = True
+
+                            special_type = input("And what type of transaction does this group fall into? ")
+
+                            if not special_type in types:
+                                vals = False
+                                while not vals:
+                                    special_type = input(
+                                        "That is not a valid type of transaction, please enter either{0}.".format(
+                                            str(types)) + "Capitalisation is important: ")
+                                    if special_type in types:
+                                        vals = True
+
+                            for key in numDict.keys():
+                                if special_type == key:
+                                    numDict[key] += 1
+                                    keylist[special_key] = [special_type, numDict[key] - 1]
+
+                            specials_list.append(special_key)
+                        else:
+                            # Then what kind of transaction is it?
+
+                            ktypeo = input("What type of transaction is " + use + " for " + str(newtrans[
+                                "amount"]) + " on " + newtrans['date'] +
+                                "? Bills, Food, Income, Gifts, Travel, Savings or Other: ")
+                            # ask for the type
+
+                            # make sure it is a valid type
+                            if not ktypeo in types:
+                                vals = False
+                                while not vals:
+                                    ktypeo = input(
+                                        "That is not a valid type of transaction, please enter either{0}.".format(
+                                            str(types)) + "Capitalisation is important: ")
+                                    # keep asking until it is a valid type
+                                    # Then it is a valid type
+                                    if ktypeo in types:
+                                        vals = True
+
+                            # We now know what type of transaction it is.
+                            for key in numDict.keys():
+                                # so loop through the transaction types until we find the right one.
+                                if ktypeo == key:
+                                    #increment the number of transactions we have of this type.
+                                    numDict[key] += 1
+                                    #and add it to the keylist.
+                                    keylist[use] = [ktypeo, numDict[key] - 1]
+                    newtrans['name'] = use
+
+                    transactions.append(Transaction(newtrans['amount'], newtrans['name'], newtrans['account_name'],
+                                                    date_sorter(newtrans['date'])))
+                elif line.startswith('<DTPOSTED>'):
+                    newtrans['date'] = line[10:14] + '-' + line[14:16] + '-' + line[16:18]
+
+                elif line.startswith('<TRNAMT>'):
+                    if ('</TRNAMT>') in line:
+                        newtrans['amount'] = line[8:len(line)-10]
+                    else:
+                        newtrans['amount'] = line[8:len(line)-1]
+
+                elif line.startswith('<NAME>'):
+                    if '</NAME>' in line:
+                        trans_name = line[6:len(line)-8]
+                    else:
+                        trans_name = line[6:len(line)-1]
+
+                elif line.startswith('<MEMO>'):
+                    if '</MEMO>' in line:
+                        trans_memo = line[6:len(line)-8]
+                    else:
+                        trans_memo = line[6:len(line)-1]
+
+            else:
+                if line.startswith('<STMTTRN>'):
+                    intrans = True
+                    newtrans = {'amount': None, 'name': None, 'account_name': account, 'date': None}
+
+    for trans in transactions:
+        if trans.date not in dates:
+            dates.append(trans.date)
+        if trans.date not in organiser:
+            organiser[trans.date] = []
+        organiser[trans.date].append(trans)
+
+
+    key_maker(keylist, specials_list)
+
+    return organiser, dates
 
 
 def quicken(qif_file, dates, organiser, account):
     """
-
-
-
     :type qif_file: file
     :type dates: list
     :param qif_file:
@@ -96,21 +217,21 @@ def quicken(qif_file, dates, organiser, account):
                     "amount"] + " on " + qif.textdate + "? Bills, Food, Income, Gifts, Travel, Savings or Other: ")
                 # ask for the type
 
-                #make sure it is a valid type
+                # make sure it is a valid type
                 if not ktypeo in types:
                     vals = False
                     while not vals:
                         ktypeo = input(
                             "That is not a valid type of transaction, please enter either{0}.".format(str(types)) +
                             "Capitalisation is important: ")
-                        #keep asking until it is a valid type
-                        #Then it is a valid type
+                        # keep asking until it is a valid type
+                        # Then it is a valid type
                         if ktypeo in types:
                             vals = True
 
-                #We now know what type of transaction it is.
+                # We now know what type of transaction it is.
                 for key in numDict.keys():
-                    #so loop through the transaction types until we find the right one.
+                    # so loop through the transaction types until we find the right one.
                     if ktypeo == key:
                         #increment the number of transactions we have of this type.
                         numDict[key] += 1
@@ -155,7 +276,7 @@ def hsbc(statement_file, dates, organiser, account):
                     break
 
             # start the process of adding an unknown to the keylist
-            #If we can't find the key or it's not a special case
+            # If we can't find the key or it's not a special case
             if (not row[1] in keylist) and (not is_special):
 
                 specialness = input(row[1] + " for " + row[2] + " on " + row[0] +
@@ -195,8 +316,8 @@ def hsbc(statement_file, dates, organiser, account):
                     specials_list.append(special_key)
 
                 else:
-                    #Then what kind of transaction is it?
-                    #ask for the type
+                    # Then what kind of transaction is it?
+                    # ask for the type
                     ktypeo = input("What type of transaction is " + row[1] + " for " + row[2] + " on " + row[
                         0] + "? Bills, Food, Income, Gifts, Travel, Savings or Other: ")
 
@@ -286,7 +407,7 @@ def halifax(statement_file, dates, organiser, account):
 
                 # If it is special (above input to be turned into a bool using a checkbox.
                 if specialness:
-                    #what phraseare we using to test for specialness?
+                    # what phraseare we using to test for specialness?
                     special_key = input("What common phrase or word can be seen in all transactions" +
                                         " within this group? ")
 
@@ -320,21 +441,21 @@ def halifax(statement_file, dates, organiser, account):
 
                 else:
 
-                    #ask for the type
+                    # ask for the type
                     ktypeo = input("What type of transaction is " + typer + " for " + str(
                         row6 - row5) + " on " + datecomp + "? Bills, Food, Income, Gifts, Travel, Savings or Other: ")
-                    #make sure it is a valid type
+                    # make sure it is a valid type
                     if not ktypeo in types:
                         vals = False
                         while not vals:
-                            #keep asking until it is a valid type
+                            # keep asking until it is a valid type
                             ktypeo = input(
                                 "That is not a valid type of transaction, please enter either{0}.".format(str(types)) +
                                 "Capitalisation is important: ")
                             if ktypeo in types:
                                 vals = True
 
-                    #We now know what type of transaction it is.
+                    # We now know what type of transaction it is.
                     for key in numDict.keys():
                         #so loop through the transaction types until we find the right one.
                         if ktypeo == key:
@@ -350,6 +471,9 @@ def halifax(statement_file, dates, organiser, account):
 
     return organiser, dates
 
+'''
+////////////////////////////////////////////Start DB collating and gathering functions\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+'''
 
 def date_splitter():
     """
@@ -402,15 +526,21 @@ def date_splitter():
                             something + 1) + " here: ")
                     if os.path.isfile(statement_file):
                         is_real = True
+
+            # It's a Quicken file
             if statement_file.upper().endswith(".QIF"):
                 organiser, dates = quicken(statement_file, dates, organiser, account)
 
-            # It's HSBC
+            # It's a money file
+            elif statement_file.upper().endswith(".OFX"):
+                organiser, dates = OFX(statement_file, dates, organiser, account)
+
+            # CSV from HSBC
             elif typeo.lower() == "hsbc":
                 organiser, dates = hsbc(statement_file, dates, organiser, account)
                 # So convert HSBC to standard format
 
-            # It's Halifax
+            # CSV from Halifax
             elif typeo.lower() == "halifax":
                 organiser, dates = halifax(statement_file, dates, organiser, account)
                 # So convert Halifax to standard format.
@@ -523,9 +653,9 @@ def type_splitter(datee, org, dictnum):
     # for each date
     for date1 in datee:
         if date1 in output_store:
-            #find the key values within that date and loop through them
+            # find the key values within that date and loop through them
             for key in output_store[date1].name_totals.keys():
-                #make sure it exists (no reason it wouldn't)
+                # make sure it exists (no reason it wouldn't)
                 if not key in keylist:
                     print(str(key) + " not found in keylist. Error occured")
                 else:
@@ -552,11 +682,8 @@ def writer(master_list, datee, dict_num):
         lists[key] = []
         for q in range(0, dict_num[key]):
             lists[key].append(0)
-    print(len(keylist), len(lists))
     for ii in keylist:  # run through the transactions
-        print(ii, keylist[ii][1], keylist[ii][0], len(lists[keylist[ii][0]]))
         lists[keylist[ii][0]][keylist[ii][1]] = ii
-
 
     for csv_file in os.listdir("core/csvs"):
         if csv_file.endswith(".csv"):
