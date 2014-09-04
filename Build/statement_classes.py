@@ -5,13 +5,23 @@ import pickle
 import datetime
 import calendar
 
-# TODO: complete specials creation
 
 numDict = {}  # this helps us to keep track of how many of each transaction we have
+
+if not os.path.exists('core/accounts'):
+    os.makedirs('core/accounts')
+
+if not os.path.exists("core/types"):
+    os.makedirs("core/types")
 
 account_list = [x.replace('.pkl', "") for x in os.listdir('core/accounts') if x.endswith('.pkl')]
 
 specials_list = []
+
+if 'special.csv' not in os.listdir():
+    open('special.csv', 'a').close()
+if 'keys.csv' not in os.listdir():
+    open('keys.csv', 'a').close()
 
 with open("special.csv", "r") as special_file:  # lets find what our specials are.
     special_types = csv.reader(special_file)
@@ -319,8 +329,8 @@ class Transaction:
             if special_type.upper() in name.upper():  # is this special in the name?
                 self.name = str(special_type)  # if yes then change then assign the name to this special
                 break  # and exit the for loop - can we make specials more specific? think of a way...
-            else:  # otherwise it's not special - so it's in the keylist
-                self.name = name  # name is name
+        else:  # otherwise it's not special - so it's in the keylist
+            self.name = name  # name is name
 
         # just in case we hit a special. Might be useful to keep original name of this transaction for comparisons etc.
         self.true_name = name
@@ -520,6 +530,11 @@ def make_qifs(filepath):
 
     return qifs
 
+'''
+********************************************Start Account and Type based
+                                            Functions, Classes and Checking******************************************
+'''
+
 
 class TypeObject:
     def __init__(self, typ):
@@ -611,6 +626,38 @@ for y in os.listdir("core/types"):
     if y.endswith(".pkl"):
         numDict[y.replace(".pkl", "")] = 0
 
+temp_list = {}
+
+'''
+************************************Start KeyList and Specials based functions*****************************************
+'''
+
+def keylist_cleaner(cleaned_list):
+    for key in cleaned_list:
+        if cleaned_list[key][0] not in temp_list:
+            temp_list[cleaned_list[key][0]] = {}
+        temp_list[cleaned_list[key][0]][cleaned_list[key][1]] = key
+
+    for key in temp_list:
+        order_check = sorted(list(temp_list[key].keys()))
+
+        changed = {}
+
+        for i in range(len(order_check[:-1])):
+            if int(order_check[order_check.index(order_check[i])+1]) < int(order_check[i]):
+                print('something terrible has happened')
+            elif order_check[order_check.index(order_check[i])+1] - order_check[i] != 1:
+                old = order_check[order_check.index(order_check[i])+1]
+                while order_check[order_check.index(order_check[i])+1] - order_check[i] != 1:
+                    order_check[order_check.index(order_check[i])+1] -= 1
+                changed[old] = order_check[order_check.index(order_check[i])+1]
+
+        for thing in temp_list[key].keys():
+            if thing in changed.keys():
+                cleaned_list[temp_list[key][thing]] = [key, changed[thing]]
+
+    return cleaned_list
+
 
 def list_grabber():
     """
@@ -634,6 +681,8 @@ def list_grabber():
             keys1[row[0]] = [row[1], int(row[2])]  # Create a key for the transaction with a list
             # holding the type of transaction and the column number.
             numDict[row[1]] += 1
+
+    keys1 = keylist_cleaner(keys1)
 
     return keys1  # return key dictionary
 
@@ -728,12 +777,28 @@ def special_maker(new_type, list_of_keys, specials, payee):
 
     specials.append(special_key)
 
+    list_of_keys = keylist_cleaner(list_of_keys)
+
     return list_of_keys, specials
 
+def key_maker(lister, special_lister):
+    """
+    need to make a function which creates a key list from the new transactions found on this cycle
 
-# Grab the keylist. Needs to be done here otherwise undefined variable in functions
-keylist = list_grabber()
+    (dict) ---> csv
+    """
 
+    lister = keylist_cleaner(lister)
+
+    with open("keys.csv", "w") as keys_file:
+        key_writer = csv.writer(keys_file)
+        for key in lister.keys():
+            key_writer.writerow([key, lister[key][0], lister[key][1]])
+
+    with open("specials.csv", "w") as specials_file:
+        specials_writer = csv.writer(specials_file)
+        for special_type in special_lister:
+            specials_writer.writerow([special_type])
 
 def switch_column():
     global keylist, numDict
@@ -763,3 +828,6 @@ def switch_column():
         if keylist[key][0] == keylist[key_change][0] and keylist[key][1] == new_col:
             keylist[key][1] = current_col
             keylist[key_change][1] = new_col
+
+# Grab the keylist. Needs to be done here otherwise undefined variable in functions
+keylist = list_grabber()
