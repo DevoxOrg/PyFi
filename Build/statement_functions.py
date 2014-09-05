@@ -43,36 +43,7 @@ def OFX(filename, dates, organiser, account):
                                             " or part of a group of transactions? ")
 
                         if specialness:
-                            special_key = input(
-                                "What common phrase or word can be seen in all transactions within this group? ")
-
-                            if not special_key.upper() in use.upper():
-                                is_keyable = False
-                                while not is_keyable:
-                                    special_key = input(
-                                        special_key +
-                                        " isn't in this transaction. Please pick a group of characters which will " +
-                                        "always be found within this transaction and not in any other transaction. ")
-                                    if special_key.upper() in use.upper():
-                                        is_keyable = True
-
-                            special_type = input("And what type of transaction does this group fall into? ")
-
-                            if not special_type in types:
-                                vals = False
-                                while not vals:
-                                    special_type = input(
-                                        "That is not a valid type of transaction, please enter either{0}.".format(
-                                            str(types)) + "Capitalisation is important: ")
-                                    if special_type in types:
-                                        vals = True
-
-                            for key in numDict.keys():
-                                if special_type == key:
-                                    numDict[key] += 1
-                                    keylist[special_key] = [special_type, numDict[key] - 1]
-
-                            specials_list.append(special_key)
+                            keylist, specials_list = special_maker(use, keylist, specials_list)
                         else:
                             # Then what kind of transaction is it?
 
@@ -181,34 +152,7 @@ def quicken(qif_file, dates, organiser, account):
                                 "or part of a group of transactions? ")
 
             if specialness:
-                special_key = input("What common phrase or word can be seen in all transactions within this group? ")
-
-                if not special_key.upper() in qif.order["payee"].upper():
-                    is_keyable = False
-                    while not is_keyable:
-                        special_key = input(
-                            special_key + " isn't in this transaction. Please pick a group of characters which will " +
-                            "always be found within this transaction and not in any other transaction. ")
-                        if special_key.upper() in qif.order["payee"].upper():
-                            is_keyable = True
-
-                special_type = input("And what type of transaction does this group fall into? ")
-
-                if not special_type in types:
-                    vals = False
-                    while not vals:
-                        special_type = input(
-                            "That is not a valid type of transaction, please enter either{0}.".format(str(types)) +
-                            "Capitalisation is important: ")
-                        if special_type in types:
-                            vals = True
-
-                for key in numDict.keys():
-                    if special_type == key:
-                        numDict[key] += 1
-                        keylist[special_key] = [special_type, numDict[key] - 1]
-
-                specials_list.append(special_key)
+                keylist, specials_list = special_maker(qif.order["payee"], keylist, specials_list)
 
             else:
                 # Then what kind of transaction is it?
@@ -284,36 +228,7 @@ def hsbc(statement_file, dates, organiser, account):
                                     "Is this a generic transaction or part of a group of transactions? ")
 
                 if specialness:
-                    special_key = input(
-                        "What common phrase or word can be seen in all transactions within this group? ")
-
-                    if not special_key.upper() in row[1].upper():
-                        is_keyable = False
-                        while not is_keyable:
-                            special_key = input(
-                                special_key + " isn't in this transaction. " +
-                                "Please pick a group of characters which will always be found within this " +
-                                "transaction and not in any other transaction. ")
-                            if special_key.upper() in row[1].upper():
-                                is_keyable = True
-
-                    special_type = input("And what type of transaction does this group fall into? ")
-
-                    if not special_type in types:
-                        vals = False
-                        while not vals:
-                            special_type = input(
-                                "That is not a valid type of transaction, please enter either{0}.".format(str(types)) +
-                                "Capitalisation is important: ")
-                            if special_type in types:
-                                vals = True
-
-                    for key in numDict.keys():
-                        if special_type == key:
-                            numDict[key] += 1
-                            keylist[special_key] = [special_type, numDict[key] - 1]
-
-                    specials_list.append(special_key)
+                    keylist, specials_list = special_maker(row[1], keylist, specials_list)
 
                 else:
                     # Then what kind of transaction is it?
@@ -408,36 +323,7 @@ def halifax(statement_file, dates, organiser, account):
                 # If it is special (above input to be turned into a bool using a checkbox.
                 if specialness:
                     # what phraseare we using to test for specialness?
-                    special_key = input("What common phrase or word can be seen in all transactions" +
-                                        " within this group? ")
-
-                    if not special_key.upper() in typer.upper():
-                        is_keyable = False
-                        while not is_keyable:
-                            special_key = input(
-                                special_key + " isn't in this transaction. " +
-                                "Please pick a group of characters which will always be found " +
-                                "within this transaction and not in any other transaction. ")
-                            if special_key.upper() in typer.upper():
-                                is_keyable = True
-
-                    special_type = input("And what type of transaction does this group fall into? ")
-
-                    if not special_type in types:
-                        vals = False
-                        while not vals:
-                            special_type = input(
-                                "That is not a valid type of transaction, please enter either{0}.".format(str(types)) +
-                                "Capitalisation is important: ")
-                            if special_type in types:
-                                vals = True
-
-                    for key in numDict.keys():
-                        if special_type == key:
-                            numDict[key] += 1
-                            keylist[special_key] = [special_type, numDict[key] - 1]
-
-                    specials_list.append(special_key)
+                    keylist, specials_list = special_maker(typer, keylist, specials_list)
 
                 else:
 
