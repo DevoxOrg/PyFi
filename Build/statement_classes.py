@@ -531,8 +531,8 @@ def make_qifs(filepath):
     return qifs
 
 '''
-********************************************Start Account and Type based
-                                            Functions, Classes and Checking******************************************
+////////////////////////////////////////////Start Account and Type based
+                                            Functions, Classes and Checking\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 '''
 
 
@@ -629,7 +629,7 @@ for y in os.listdir("core/types"):
 temp_list = {}
 
 '''
-************************************Start KeyList and Specials based functions*****************************************
+////////////////////////////////////////////Start KeyList and Specials based functions\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 '''
 
 def keylist_cleaner(cleaned_list):
@@ -687,14 +687,22 @@ def list_grabber():
     return keys1  # return key dictionary
 
 
-def special_maker(new_type, list_of_keys, specials, payee):
+def special_maker(new_type, list_of_keys, specials):
 
     global numDict
 
     type_list = list(numDict.keys())
 
+    str_type_list = str(sorted(type_list)).lstrip('[').rstrip(']').replace("'", "")
+
     special_key = input("What common phrase or word can be seen in all transactions within this group? ")
 
+    if special_key in specials:
+        is_new = False
+        while not is_new:
+            special_key = input('This special type already exists, please enter a different group of characters in this transaction. ')
+            if special_key in specials:
+                is_new = True
     if not special_key.upper() in new_type.upper():
         is_keyable = False
         while not is_keyable:
@@ -702,7 +710,7 @@ def special_maker(new_type, list_of_keys, specials, payee):
                 special_key + " isn't in this transaction, " + new_type +
                 ". Please pick a group of characters which will always be found within this " +
                 "transaction and not in any other transaction. ")
-            if special_key.upper() in payee.upper():
+            if special_key.upper() in new_type.upper():
                 is_keyable = True
 
     exclude = []
@@ -718,22 +726,24 @@ def special_maker(new_type, list_of_keys, specials, payee):
     if key_count > 1:
         ignore_conflicts = input("There are " + str(key_count) +
                                  " transaction names that will be affected by this change." +
-                                 " do you want to exclude any of them?")
+                                 " Do you want to exclude any of them?")
     elif key_count > 0:
         ignore_conflicts = input("There is " + str(key_count) +
                                  " transaction name that will be affected by this change." +
-                                 " do you want to exclude any of them?")
+                                 " Do you want to exclude any of them?")
     else:
         ignore_conflicts = False
 
     if ignore_conflicts:
         for key in conflict:
-            choice = input(
-                "Key: " + key + " is affected by this change, do you want to exclude it from this special type? ")
+            choice = input("Key: " + key +
+                           " is affected by this change, do you want to exclude it from this special type? ")
             if choice:
                 exclude.append(key)
             else:
                 include.append(key)
+    else:
+        include = conflict
 
     removal_count = 0
 
@@ -747,7 +757,7 @@ def special_maker(new_type, list_of_keys, specials, payee):
         vals = False
         while not vals:
             special_type = input(
-                "That is not a valid type of transaction, please enter either {0}.".format(str(type_list)) +
+                "That is not a valid type of transaction, please enter either {0}.".format(str_type_list) +
                 " Capitalisation is important: ")
             if special_type in type_list:
                 vals = True
@@ -777,9 +787,10 @@ def special_maker(new_type, list_of_keys, specials, payee):
 
     specials.append(special_key)
 
-    list_of_keys = keylist_cleaner(list_of_keys)
+    key_maker(list_of_keys, specials)
 
     return list_of_keys, specials
+
 
 def key_maker(lister, special_lister):
     """
@@ -787,15 +798,13 @@ def key_maker(lister, special_lister):
 
     (dict) ---> csv
     """
-
     lister = keylist_cleaner(lister)
-
-    with open("keys.csv", "w") as keys_file:
+    with open("keys.csv", "w", newline='') as keys_file:
         key_writer = csv.writer(keys_file)
         for key in lister.keys():
             key_writer.writerow([key, lister[key][0], lister[key][1]])
 
-    with open("specials.csv", "w") as specials_file:
+    with open("special.csv", "w", newline = '') as specials_file:
         specials_writer = csv.writer(specials_file)
         for special_type in special_lister:
             specials_writer.writerow([special_type])
@@ -803,31 +812,36 @@ def key_maker(lister, special_lister):
 def switch_column():
     global keylist, numDict
 
-    key_change = input("Which key do you want to change the column of " + str(list(keylist.keys())) + "?")
+    global specials_list
+
+    key_change = input("Which key do you want to change the column of ? ")
 
     if not key_change in keylist.keys():
         good_key = False
         while not good_key:
-            key_change = input("That key doesn't exist, please choose another from " + str(list(keylist.keys())) + "?")
+            key_change = input("That key doesn't exist, please choose another. ")
             if key_change in keylist.keys():
                 good_key = True
 
-    current_col = keylist[key_change]
+    current_col = keylist[key_change][1]
 
-    new_col = input("Which column do you want " + key_change + " to be moved to?")
+    new_col = int(input("Which column do you want " + key_change + " to be moved to?"))
 
     if int(new_col) > numDict[keylist[key_change][0]]:
         big_number = False
         while not big_number:
             new_col = input("That number is too big, please pick a number between 0 and " +
-                            str(numDict[keylist[key_change][1]]) + ".")
-            if int(new_col) <= numDict[keylist[key_change][1]]:
+                            str(numDict[keylist[key_change][0]]) + ".")
+            if int(new_col) <= numDict[keylist[key_change][0]]:
                 big_number = True
 
     for key in keylist:
         if keylist[key][0] == keylist[key_change][0] and keylist[key][1] == new_col:
             keylist[key][1] = current_col
             keylist[key_change][1] = new_col
+            break
+
+    key_maker(keylist, specials_list)
 
 # Grab the keylist. Needs to be done here otherwise undefined variable in functions
 keylist = list_grabber()
