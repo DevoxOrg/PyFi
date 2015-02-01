@@ -1,3 +1,7 @@
+"""
+Most likely deprecated in favour of Statement.Classes
+"""
+
 from decimal import *
 import csv
 import os
@@ -42,12 +46,12 @@ def date_sorter(date, order=0):
 
     (str, [int]) --->  tup
 
-    >>> date_sorter("2014/06/12")
-    ('12', '06', '2014')
-    >>> date_sorter("12-06-2014", 1)
-    ('12', '06', '2014')
-    >>> date_sorter("06.12.2014", 2)
-    ('12', '06', '2014')
+    >>> date_sorter("2014/12/31")
+    datetime.date(2014, 12, 31))
+    >>> date_sorter("31-12-2014", 1)
+    datetime.date(2014, 12, 31))
+    >>> date_sorter("12.31.2014", 2)
+    datetime.date(2014, 12, 31))
     """
     if order == 0:
         day = datetime.date(int(date[:4]), int(date[5:7]), int(date[8:]))
@@ -105,7 +109,11 @@ def get_all(everything, date1='Beginning', date2='End', types=list(numDict.keys(
         for root, dirs, files in os.walk("ref"):
             for ref_file in files:
                 if ref_file.endswith(".pkl"):
-                    parts = root.split("/")
+                    if os.name == 'nt':
+                        parts = root.split("\\")
+                    else:
+                        parts = root.split("/")
+                    
                     date = datetime.date(int(parts[1]), int(parts[2]), int(ref_file.rstrip(".pkl")))
                     if not date in all_dates.keys():
                         all_dates[date] = []
@@ -120,21 +128,48 @@ def get_all(everything, date1='Beginning', date2='End', types=list(numDict.keys(
         for root, dirs, files in os.walk("ref"):
             for ref_file in files:
                 if ref_file.endswith(".pkl"):
-                    parts = root.split("/")
+                    if os.name == 'nt':
+                        parts = root.split("\\")
+                    else:
+                        parts = root.split("/")
+
                     date = datetime.date(int(parts[1]), int(parts[2]), int(ref_file.rstrip(".pkl")))
+
                     if date in date_list:
                         if not date in all_dates.keys():
                             all_dates[date] = []
                         with open(root + "/" + ref_file, "rb") as to_load:
                             date_check = pickle.load(to_load)
                             trans = []
-                            for trans in date_check.transactions:
-                                if trans.account in accounts and trans.type in types:
-                                    trans.append(trans)
+                            for transact in date_check.transactions:
+                                if transact.account in accounts and transact.type in types:
+                                    trans.append(transact)
 
                             all_dates[date] = FullDate(trans, date)
 
     return all_dates
+
+
+def rerun_dates():
+    for root, dirs, files in os.walk("ref"):
+        for ref_file in files:
+            if ref_file.endswith(".pkl"):
+                if os.name == 'nt':
+                    parts = root.split("\\")
+                else:
+                    parts = root.split("/")
+
+                date = datetime.date(int(parts[1]), int(parts[2]), int(ref_file.rstrip(".pkl")))
+
+                try:
+                    with open(root + "/" + ref_file, "rb") as to_load:
+                        old_date = pickle.load(to_load)
+                    new_date = FullDate(old_date.transactions, date)
+                    with open(root+ "/" + ref_file, "wb") as new_file:
+                        pickle.dump(new_date, new_file, pickle.HIGHEST_PROTOCOL)
+
+                except AttributeError:
+                    print(root, ref_file)
 
 
 class Transaction:
@@ -162,6 +197,7 @@ class Transaction:
 
     def __init__(self, amount, name, account_name, date):
 
+
         global keylist  # we'll need this
         global specials_list
         self.amount = Decimal(amount)  # obvious
@@ -176,11 +212,17 @@ class Transaction:
         # just in case we hit a special. Might be useful to keep original name of this transaction for comparisons etc.
         self.true_name = name
 
+        #print(self.name in keylist.keys())
+        #if not self.name in keylist.keys():
+        #    print(keylist.keys(), amount, name, account_name, date)
         for key in keylist.keys():  # need to assign the type so compare to the keys
             if self.name == key:  # if it matches the key.
                 self.type = keylist[key][0]  # then assign it to the associated type/
         # the rest is obvious
-        self.account = account_name
+        if isinstance(account_name, Account):
+            self.account = account_name.name
+        else:
+            self.account = account_name
         self.date = date
         self.day = date.day
         self.month = date.month
@@ -233,7 +275,7 @@ class FullDate:
         true_list = self.transactions[:]  # copy the list of transactions to be cleaned
         duplicate = True  # flag to break a loop
         indexer = 0  # starting from the beginning
-
+        #print(self.date)
         while duplicate:  # while we have found duplicate transactions
             duplicate = False  # assume there are none
 
@@ -243,8 +285,8 @@ class FullDate:
                 # so once one duplicate is cleaned out it will check for another
                 # Thus will only move on when all have been cleaned.
 
-                indexer = self.transactions.index(
-                    trans2)  # reset the index to show that this is the latest transaction we checked for duplicates of
+                indexer = self.transactions.index(trans2)
+                # reset the index to show that this is the latest transaction we checked for duplicates of
                 testlist = self.transactions[:]  # copy list for deletions
 
                 del testlist[testlist.index(trans2)]  # delete the transaction being compared against from the list
@@ -253,8 +295,9 @@ class FullDate:
 
                     if point.compare(trans2):  # compare it to the current transaction
                         duplicate = True  # yep there was a duplicate
-
+                        #print("deletion from " + str(true_list[true_list.index(point)].account))
                         del true_list[true_list.index(point)]  # so delete it
+
                         break  # and leave the for loop.
 
                     else:
@@ -276,14 +319,16 @@ class FullDate:
             if not trans3.name in self.name_totals:
                 self.name_totals[trans3.name] = Decimal(0)
             if not trans3.account in self.account_totals:
-                self.account_totals[trans3.account] = Decimal(0)
+                self.account_totals[trans3.account] = {}
+            if not trans3.type in self.account_totals[trans3.account]:
+                self.account_totals[trans3.account][trans3.type] = Decimal(0)
 
             # sum the transaction types, names and accounts to find the totals each spent/made on the day.
             self.type_totals[trans3.type] += trans3.amount
 
             self.name_totals[trans3.name] += trans3.amount
 
-            self.account_totals[trans3.account] += trans3.amount
+            self.account_totals[trans3.account][trans3.type] += trans3.amount
             self.total += trans3.amount
 
     def __repr__(self):
@@ -402,6 +447,9 @@ class Account:
         self.bank = bank
         self.savings = savings
 
+    def __repr__(self):
+        return self.name
+
 
 def create_account():
     global account_list
@@ -474,29 +522,45 @@ temp_list = {}
 '''
 
 def keylist_cleaner(cleaned_list):
+    '''
+    Needed to stop anomalies occurring within the keylist.
+
+    Makes sure there are no gaps and no duplicates between indices attached to the keylist.
+
+    :param cleaned_list:
+    :return:
+    '''
+
+    temp_list = {}
     for key in cleaned_list:
         if cleaned_list[key][0] not in temp_list:
             temp_list[cleaned_list[key][0]] = {}
+        #this bit takes care of duplicates
+        while cleaned_list[key][1] in temp_list[cleaned_list[key][0]]:
+            cleaned_list[key][1]+=1
+
         temp_list[cleaned_list[key][0]][cleaned_list[key][1]] = key
 
+    #this bit takes care of gaps.
     for key in temp_list:
         order_check = sorted(list(temp_list[key].keys()))
 
         changed = {}
-
         for i in range(len(order_check[:-1])):
             if int(order_check[order_check.index(order_check[i])+1]) < int(order_check[i]):
                 print('something terrible has happened')
             elif order_check[order_check.index(order_check[i])+1] - order_check[i] != 1:
                 old = order_check[order_check.index(order_check[i])+1]
                 while order_check[order_check.index(order_check[i])+1] - order_check[i] != 1:
-                    order_check[order_check.index(order_check[i])+1] -= 1
+                    if order_check[order_check.index(order_check[i])+1]> order_check[i]:
+                        order_check[order_check.index(order_check[i])+1]-= 1
+                    else:
+                        order_check[order_check.index(order_check[i])+1]+= 1
                 changed[old] = order_check[order_check.index(order_check[i])+1]
 
         for thing in temp_list[key].keys():
             if thing in changed.keys():
                 cleaned_list[temp_list[key][thing]] = [key, changed[thing]]
-
     return cleaned_list
 
 
