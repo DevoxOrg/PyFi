@@ -20,9 +20,3 @@ Phase 5 - Package the program for all OS's, test and write up documentation.
 Questionable Phase 6 - Port the program to a lower level language.
 
 The current status of the project puts us at phase 2 and 3.
-
-Current possibilities:
-
-Add in a Chromium based browser to the interface. Create an applet to scrape statement information directly off of the internet.
-
-Possibly integrate live checking while online for increased security.
