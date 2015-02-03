@@ -36,7 +36,7 @@ import pickle, datetime, sys
 
 sys.path.append('../')
 
-from Statement.Classes import get_all, Account, TypeObject, keylist_cleaner, list_grabber
+from Statement.Classes import get_all, Account, TypeObject, keylist_cleaner, list_grabber, numDict
 #/////////////////////////////////////////////// Start Popup/Dialog classes.py \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 redfont = QtGui.QBrush()
@@ -396,10 +396,10 @@ class DialogWidg(QtGui.QDialog):
 
 #///////////////////////////////////////////// Start Central Widget classes.py \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 class StatementView(object):
-    def __init__(self, accounts, numbered_dictionary, some_func):
+    def __init__(self, accounts):
         self.accounts = accounts
-        self.numbered_dictionary = numbered_dictionary
-        self.some_func = some_func
+        self.numbered_dictionary = numDict
+        self.some_func = get_all
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(563, 524)
@@ -1522,6 +1522,18 @@ class Ui_MainWindow(object):
         self.menuFile.setObjectName("menuFile")
         self.menuExport_To = QtGui.QMenu(self.menuFile)
         self.menuExport_To.setObjectName("menuExport_To")
+        self.actionChangeView = QtGui.QAction(self.menuFile)
+        self.actionChangeView.setObjectName("menuChangeView")
+        self.actionChangeStat = QtGui.QAction(self.menuFile)
+        self.actionChangeStat.setObjectName("menuChangeStat")
+        self.actionChangeTab = QtGui.QAction(self.menuFile)
+        self.actionChangeTab.setObjectName("menuChangeTab")
+        self.actionChangeState = QtGui.QAction(self.menuFile)
+        self.actionChangeState.setObjectName("menuChangeState")
+        self.actionChangeGraph = QtGui.QAction(self.menuFile)
+        self.actionChangeGraph.setObjectName("menuChangeGraph")
+        self.actionChangeHome = QtGui.QAction(self.menuFile)
+        self.actionChangeHome.setObjectName("menuChangeHome")
         self.menuTools = QtGui.QMenu(self.menubar)
         self.menuTools.setObjectName("menuTools")
         self.menuHelp = QtGui.QMenu(self.menubar)
@@ -1553,6 +1565,11 @@ class Ui_MainWindow(object):
         self.menuExport_To.addAction(self.actionSQL)
         self.menuFile.addAction(self.actionImport)
         self.menuFile.addAction(self.menuExport_To.menuAction())
+        self.menuFile.addAction(self.actionChangeHome)
+        self.menuFile.addAction(self.actionChangeStat)
+        self.menuFile.addAction(self.actionChangeState)
+        self.menuFile.addAction(self.actionChangeTab)
+        self.menuFile.addAction(self.actionChangeGraph)
         self.menuTools.addAction(self.actionCreate_Account)
         self.menuTools.addAction(self.actionCreate_Type)
         self.menuTools.addAction(self.actionCreate_Group)
@@ -1599,6 +1616,18 @@ class Ui_MainWindow(object):
                                                                QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuExport_To.setTitle(QtGui.QApplication.translate("MainWindow", "Export To...", None,
+                                                                 QtGui.QApplication.UnicodeUTF8))
+        self.actionChangeGraph.setText(QtGui.QApplication.translate("MainWindow", "Change View....", None,
+                                                                 QtGui.QApplication.UnicodeUTF8))
+        self.actionChangeStat.setText(QtGui.QApplication.translate("MainWindow", "Statistics", None,
+                                                                 QtGui.QApplication.UnicodeUTF8))
+        self.actionChangeState.setText(QtGui.QApplication.translate("MainWindow", "Statements", None,
+                                                                 QtGui.QApplication.UnicodeUTF8))
+        self.actionChangeTab.setText(QtGui.QApplication.translate("MainWindow", "Tables", None,
+                                                                 QtGui.QApplication.UnicodeUTF8))
+        self.actionChangeGraph.setText(QtGui.QApplication.translate("MainWindow", "Graphs", None,
+                                                                 QtGui.QApplication.UnicodeUTF8))
+        self.actionChangeHome.setText(QtGui.QApplication.translate("MainWindow", "Home", None,
                                                                  QtGui.QApplication.UnicodeUTF8))
         self.menuTools.setTitle(QtGui.QApplication.translate("MainWindow", "Tools", None,
                                                              QtGui.QApplication.UnicodeUTF8))

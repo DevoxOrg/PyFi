@@ -81,8 +81,7 @@ class ControlMainWidget(ui.QtGui.QWidget):
                                    lambda:MainWidgetChange(parent, widg=ui.GraphicalView()))
 
             ui.QtCore.QObject.connect(self.widget.toolButton_3, ui.QtCore.SIGNAL('clicked()'),
-                                   lambda:MainWidgetChange(parent, widg=ui.StatementView(accounts, numbered_dictionary,
-                                                                                      sc.get_all)))
+                                   lambda:MainWidgetChange(parent, widg=ui.StatementView(accounts)))
 
             ui.QtCore.QObject.connect(self.widget.toolButton_4, ui.QtCore.SIGNAL('clicked()'),
                                    lambda:MainWidgetChange(parent, widg=ui.TableView()))
@@ -94,6 +93,14 @@ class ControlMainWindow(ui.QtGui.QMainWindow):
         super(ControlMainWindow, self).__init__(parent)
         self.ui = ui.Ui_MainWindow(csv_writer, sc.account_list)
         self.ui.setupUi(self)
+
+        # bit of an awkward hack putting these here...
+
+        self.ui.actionChangeHome.triggered.connect(lambda: MainWidgetChange(self, widg = ui.Opener()))
+        self.ui.actionChangeStat.triggered.connect(lambda: MainWidgetChange(self, widg = ui.StatsView()))
+        self.ui.actionChangeState.triggered.connect(lambda: MainWidgetChange(self, widg = ui.StatementView(sc.account_list)))
+        self.ui.actionChangeTab.triggered.connect(lambda: MainWidgetChange(self, widg = ui.TableView()))
+        self.ui.actionChangeGraph.triggered.connect(lambda: MainWidgetChange(self, widg = ui.GraphicalView()))
 
 #///////////////////////////////////////////// End Controller classes.py \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
