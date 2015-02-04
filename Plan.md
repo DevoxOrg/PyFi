@@ -4,7 +4,7 @@ So far I have split this project into 5 phases, each of which will have it's own
         - Create a compiling program to unify the various different CSV styles from each bank 
         - This has now been expanded to include QIF and OFX. A planned user defined method is in the works.
 
-## Phase 2: ## 
+## Phase 2: ##
         - Originally planned to build a tkinter GUI, now a Qt GUI with PySide. Further functionality and manipulation of the data will be added at this point
         
 ## Phase 3: ##
