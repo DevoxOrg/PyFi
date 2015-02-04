@@ -9,8 +9,6 @@
 
 
 """
-This may be in competition with mainui2.py for the main ui module, I think this one is winning.
-
 Set up the major ui widgets and their functions - large file, consider splitting
 """
 
