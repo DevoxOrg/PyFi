@@ -2,8 +2,6 @@
 The running program. start() starts everything and it should be from here where things are run.
 
 Defines a few overarching functions.
-
-TODO: sort out configs so they're independent of this file.
 """
 
 import Statement.Classes as sc
