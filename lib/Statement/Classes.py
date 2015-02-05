@@ -1,8 +1,8 @@
 """
 The primary module setting up the classes of the transaction system, as well as their relevant functions.
-
-TODO: Inheritance! why not let the full_data class inherit from datetime.date?
 """
+# TODO: consider a new class, timespan or some such. Holds full_dates in a 2D numpy array ordered by weeks.
+# Prepend and append blank dates to the array to make sure all weeks are full.
 
 from decimal import Decimal
 import csv
@@ -510,7 +510,8 @@ class FullDate:
         accounts and names in the transactions and sums the total spent on that day
         - allowing an easy comparison between these 3 standards.
     """
-
+    # TODO: Inheritance! why not let the full_data class inherit from datetime.date?
+    # To do the above, need to replace __init__ with __new__ and call super().__new__(*args)
     def __init__(self, lst, date):  # initiate the date class - bit complicated
         self.transactions = []
         for trans in lst:  # for each transaction in the list passed to the object
