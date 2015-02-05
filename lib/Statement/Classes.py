@@ -465,6 +465,9 @@ class Transaction:
         for key in keylist.keys():  # need to assign the type so compare to the keys
             if self.name == key:  # if it matches the key.
                 self.type = keylist[key][0]  # then assign it to the associated type/
+                break # FIXME: CHECK THIS SECTION, IT'S NEW AND UNTESTED
+        else:         # IT SHOULD WORK FINE, BUT JUST IN CASE. ALSO, FORCING OTHER?
+            self.type = 'Other'
         # the rest is obvious
         if isinstance(account_name, Account):
             self.account = account_name.name
@@ -510,17 +513,15 @@ class FullDate:
         accounts and names in the transactions and sums the total spent on that day
         - allowing an easy comparison between these 3 standards.
     """
-    # TODO: Inheritance! why not let the full_data class inherit from datetime.date?
-    # To do the above, need to replace __init__ with __new__ and call super().__new__(*args)
-    def __init__(self, lst, date):  # initiate the date class - bit complicated
-        self.transactions = []
+    # TODO: can we add an addition method that makes a ranged class? Make a ranged class first?
+    def __new__(cls, date, lst):  # initiate the date class - bit complicated
+        inst = super().__new__(cls, date.year, date.month, date.day)
+        inst.transactions = []
         for trans in lst:  # for each transaction in the list passed to the object
             if trans.date == date:  # the transactions must have the correct date specified when passed to the object.
-                self.transactions.append(trans)  # if they do then add to the internal list
-        self.date = date  # set the date
-        self.month = date.month
-        self.year = date.year
-        true_list = self.transactions[:]  # copy the list of transactions to be cleaned
+                inst.transactions.append(trans)  # if they do then add to the internal list
+        #cls.date = date  # set the date
+        true_list = inst.transactions[:]  # copy the list of transactions to be cleaned
         duplicate = True  # flag to break a loop
         indexer = 0  # starting from the beginning
         #print(self.date)
@@ -528,14 +529,14 @@ class FullDate:
             duplicate = False  # assume there are none
 
             # run through the list of transactions starting from where we last cycled back to the top of the while loop
-            for trans2 in self.transactions[indexer:]:
+            for trans2 in inst.transactions[indexer:]:
                 # worries to settle: we will start from the same transaction
                 # so once one duplicate is cleaned out it will check for another
                 # Thus will only move on when all have been cleaned.
 
-                indexer = self.transactions.index(trans2)
+                indexer = inst.transactions.index(trans2)
                 # reset the index to show that this is the latest transaction we checked for duplicates of
-                testlist = self.transactions[:]  # copy list for deletions
+                testlist = inst.transactions[:]  # copy list for deletions
 
                 del testlist[testlist.index(trans2)]  # delete the transaction being compared against from the list
 
@@ -555,29 +556,30 @@ class FullDate:
                     break  # we need to leave this outer for loop as well to cycle without incrementing
                     # as there may be another duplicate of this transaction.
 
-            self.transactions = true_list  # re-assign the transaction list.
+            inst.transactions = true_list  # re-assign the transaction list.
 
-        self.type_totals = {}
-        self.account_totals = {}
-        self.name_totals = {}
-        self.total = 0
-        for trans3 in self.transactions:  # now to make some easy comparisons between dates.
-            if not trans3.type in self.type_totals:  # adding stuff to the above dictionaries
-                self.type_totals[trans3.type] = Decimal(0)
-            if not trans3.name in self.name_totals:
-                self.name_totals[trans3.name] = Decimal(0)
-            if not trans3.account in self.account_totals:
-                self.account_totals[trans3.account] = {}
-            if not trans3.type in self.account_totals[trans3.account]:
-                self.account_totals[trans3.account][trans3.type] = Decimal(0)
+        inst.type_totals = {}
+        inst.account_totals = {}
+        inst.name_totals = {}
+        inst.total = 0
+        for trans3 in inst.transactions:  # now to make some easy comparisons between dates.
+            if not trans3.type in inst.type_totals:  # adding stuff to the above dictionaries
+                inst.type_totals[trans3.type] = Decimal(0)
+            if not trans3.name in inst.name_totals:
+                inst.name_totals[trans3.name] = Decimal(0)
+            if not trans3.account in inst.account_totals:
+                inst.account_totals[trans3.account] = {}
+            if not trans3.type in inst.account_totals[trans3.account]:
+                inst.account_totals[trans3.account][trans3.type] = Decimal(0)
 
             # sum the transaction types, names and accounts to find the totals each spent/made on the day.
-            self.type_totals[trans3.type] += trans3.amount
+            inst.type_totals[trans3.type] += trans3.amount
 
-            self.name_totals[trans3.name] += trans3.amount
+            inst.name_totals[trans3.name] += trans3.amount
 
-            self.account_totals[trans3.account][trans3.type] += trans3.amount
-            self.total += trans3.amount
+            inst.account_totals[trans3.account][trans3.type] += trans3.amount
+            inst.total += trans3.amount
+        return inst
 
     def __repr__(self):
         return "Date object. Number of transactions: " + str(len(self.transactions)) + " Totalling: " + str(self.total)
