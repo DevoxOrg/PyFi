@@ -6,7 +6,7 @@ Defines a few overarching functions.
 
 import Statement.Classes as sc
 import Statement.Functions as sf
-import sys
+import sys, datetime, pickle
 from UI import ui
 
 def start(write=False, account = None, statement_file = None):
@@ -89,7 +89,7 @@ class ControlMainWidget(ui.QtGui.QWidget):
 class ControlMainWindow(ui.QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(ControlMainWindow, self).__init__(parent)
-        self.ui = ui.Ui_MainWindow(csv_writer, sc.account_list)
+        self.ui = ui.Ui_MainWindow(sc.account_list)
         self.ui.setupUi(self)
 
         # bit of an awkward hack putting these here...
@@ -107,6 +107,25 @@ def MainWidgetChange(Window, widg = ui.Opener()):
     the_widget = ControlMainWidget(sc.numDict, sc.account_list, parent = Window, Widg = widg)
 
     Window.setCentralWidget(the_widget)
+
+# with open('Statement/temp2.pkl', 'rb') as to_load:
+#     y = pickle.load(to_load)
+# seen = []
+# for root, dirs, files in sc.os.walk('../core/ref'):
+#     if files:
+#         for file in files:
+#             with open(root+'/'+file, 'wb') as this:
+#                 date = root.split('/')[-2:]+[file[:-4]]
+#                 key = datetime.date(int(date[0]), int(date[1]), int(date[2]))
+#                 new_trans = []
+#                 print(root+'/'+file, key)
+#                 for trans in y[key]:
+#                     print(trans)
+#                     new_trans.append(sc.Transaction(*trans))
+#                 y[key] = new_trans
+#                 to_load = sc.FullDate(y[key], key)
+#                 pickle.dump(to_load, this, pickle.HIGHEST_PROTOCOL)
+
 
 if __name__ == '__main__':
     app = ui.QtGui.QApplication(sys.argv)

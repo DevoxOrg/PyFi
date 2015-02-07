@@ -397,7 +397,6 @@ class StatementView(object):
     def __init__(self, accounts):
         self.accounts = accounts
         self.numbered_dictionary = numDict
-        self.some_func = get_all
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(563, 524)
@@ -493,31 +492,36 @@ class StatementView(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
 
-        all_things = self.some_func(True)
+        all_things = get_all(True)
 
         all_keys = list(all_things.keys())
 
         all_keys.sort()
 
         all_list = []
-
+        debugcount = 0
         for key in all_keys:
-            for innerKey in all_things[key].transactions:
-                date_add = str(key.year)+'/'
-                if len(str(key.month)) == 1:
-                    date_add = date_add + '0' + str(key.month)+'/'
-                else:
-                    date_add = date_add+str(key.month)+'/'
-                if len(str(key.day)) == 1:
-                    date_add = date_add + '0' + str(key.day)
-                else:
-                    date_add = date_add+str(key.day)
+            debugcount +=1
+            try:
+                for innerKey in all_things[key].transactions:
+                    date_add = str(key.year)+'/'
+                    if len(str(key.month)) == 1:
+                        date_add = date_add + '0' + str(key.month)+'/'
+                    else:
+                        date_add = date_add+str(key.month)+'/'
+                    if len(str(key.day)) == 1:
+                        date_add = date_add + '0' + str(key.day)
+                    else:
+                        date_add = date_add+str(key.day)
 
-                all_list.append([date_add,
-                                 innerKey.account,
-                                 innerKey.type,
-                                 innerKey.name,
-                                 innerKey.amount])
+                    all_list.append([date_add,
+                                     innerKey.account,
+                                     innerKey.type,
+                                     innerKey.name,
+                                     innerKey.amount])
+            except AttributeError as e:
+                import pdb; pdb.set_trace()
+                raise e
 
 
         self.colcnt = 5
@@ -533,7 +537,7 @@ class StatementView(object):
         else:
             #print(2)
             self.rowcnt = self.popup_statement()
-            all_things = self.some_func(True)
+            all_things = get_all(True)
 
             all_keys = list(all_things.keys())
 
@@ -625,10 +629,9 @@ class StatementView(object):
             return self.fill_table()
 
     def fill_table(self):
-
         beginning, end, types, accounts = self.find_filters()
 
-        all_things = self.some_func(False, beginning, end, types, accounts)
+        all_things = get_all(False, beginning, end, types, accounts)
 
         #print(beginning,end,types,accounts)
 
@@ -1504,8 +1507,7 @@ class GraphicalView(QtGui.QWidget):
 
 #///////////////////////////////////////////// Start Main Window classes.py \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 class Ui_MainWindow(object):
-    def __init__(self, some_func, accounts):
-        self.some_func = some_func
+    def __init__(self, accounts):
         self.accounts = accounts
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -1604,9 +1606,10 @@ class Ui_MainWindow(object):
 
     def write_csvs(self):
         #print(1)
+        from main import csv_writer
         beginning, end, types, accounts = self.find_filters()
 
-        self.some_func(False, beginning, end, types, accounts)
+        self.csv_writer(False, beginning, end, types, accounts)
         #print(2)
 
     def retranslateUi(self, MainWindow):
