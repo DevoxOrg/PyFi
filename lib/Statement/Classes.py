@@ -68,7 +68,7 @@ def special_maker(new_type, list_of_keys, specials):
     global numDict
 
     type_list = list(numDict.keys())
-
+    
     str_type_list = str(sorted(type_list)).lstrip('[').rstrip(']').replace("'", "")
 
     special_key = input("What common phrase or word can be seen in all transactions within this group? ")
@@ -218,6 +218,8 @@ def list_grabber():
 
     return keys1, numDict  # return key dictionary
 
+# Lets make some core files.
+
 if not os.path.exists(path+'core/accounts'):
     os.makedirs(path+'core/accounts')
 
@@ -235,6 +237,8 @@ if 'special.csv' not in os.listdir(path+'core/misc/'):
     open(path+'core/misc/special.csv', 'a').close()
 if 'keys.csv' not in os.listdir(path+'core/misc/'):
     open(path+'core/misc/keys.csv', 'a').close()
+
+# Grab the necessary constants.
 
 keylist, numDict = list_grabber()
 
@@ -323,28 +327,34 @@ def get_all(everything = True, date1='Beginning', date2='End', types=list(numDic
     """
 
     all_dates = {}
-    # import pdb; pdb.set_trace()
     if everything:
+        # We aren't discriminating about dates, so will grab all files.
         for root, dirs, files in os.walk(path+"core/ref"):
             for ref_file in files:
                 if ref_file.endswith(".pkl"):
+                    # then it is a full_date object.
                     if os.name == 'nt':
+                        # Slight differences between OS's.
                         parts = root.split("\\")
                     else:
                         parts = root.split("/")
-                    # print(parts)
                     
+                    # Build up a key for the dictionary storage.
                     date = datetime.date(int(parts[-2]), int(parts[-1]), int(ref_file.rstrip(".pkl")))
+                    
                     if not date in all_dates.keys():
                         all_dates[date] = []
+                    # And put the object in place.
                     try:
                         with open(root + "/" + ref_file, "rb") as to_load:
                             print(root + "/" + ref_file)
                             all_dates[date] = pickle.load(to_load)
                     except AttributeError:
+                        # TODO: Not convinced this is needed anymore, think about removing.
                         print(root, ref_file)
                         pass
     else:
+        # The same as above, but filtered on the given dates.
         date_list = date_cleaner([date_sorter(date2), date_sorter(date1)])
         for root, dirs, files in os.walk(path +"core/ref"):
             for ref_file in files:
@@ -465,10 +475,7 @@ class Transaction:
 
         # just in case we hit a special. Might be useful to keep original name of this transaction for comparisons etc.
         self.true_name = name
-
-        #print(self.name in keylist.keys())
-        #if not self.name in keylist.keys():
-        #    print(keylist.keys(), amount, name, account_name, date)
+        
         for key in keylist.keys():  # need to assign the type so compare to the keys
             if self.name == key:  # if it matches the key.
                 self.type = keylist[key][0]  # then assign it to the associated type/
@@ -486,7 +493,11 @@ class Transaction:
         self.year = date.year
 
     def compare(self, other_trans):
-
+        """
+        A method to compare two Transactions with each other - prevents duplication from occurring.
+        This is fairly useful if people have statements with overlapping dates and makes the system safer.
+        Transaction1 == Transaction2 does not work.
+        """
         result = True  # assume each of these transactions are different
 
         # lets get every attribute from the transaction
@@ -534,8 +545,8 @@ class FullDate(datetime.date):
             date = date[0]
         inst = super(FullDate, cls).__new__(cls, date.year, date.month, date.day)
         inst.transactions = []
-        inst.date = date,
-        inst.lst = lst
+        inst.date = date, # FIXME: This comma makes it a tuple, get rid of the comma.
+        inst.lst = lst # Needed for __reduce__. see below.
         for trans in lst:  # for each transaction in the list passed to the object
             if trans.date == date:  # the transactions must have the correct date specified when passed to the object.
                 inst.transactions.append(trans)  # if they do then add to the internal list
@@ -543,7 +554,7 @@ class FullDate(datetime.date):
         true_list = inst.transactions[:]  # copy the list of transactions to be cleaned
         duplicate = True  # flag to break a loop
         indexer = 0  # starting from the beginning
-        #print(self.date)
+        
         while duplicate:  # while we have found duplicate transactions
             duplicate = False  # assume there are none
 
@@ -581,6 +592,7 @@ class FullDate(datetime.date):
         inst.account_totals = {}
         inst.name_totals = {}
         inst.total = 0
+        
         for trans3 in inst.transactions:  # now to make some easy comparisons between dates.
             if not trans3.type in inst.type_totals:  # adding stuff to the above dictionaries
                 inst.type_totals[trans3.type] = Decimal(0)
@@ -601,6 +613,11 @@ class FullDate(datetime.date):
         return inst
 
     def __reduce__(self):
+        """
+        Needed for pickling. Pickling this object results in an error when unpickling as an
+        argument for __new__ seemingly gets lost. This explicitly tells pickle to rebuild a
+        FullDate object with the specified parameters.
+        """
         return (self.__class__, (self.lst, self.date))
 
     def __repr__(self):
