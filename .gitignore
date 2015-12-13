@@ -16,7 +16,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-pyfi/
 lib64/
 parts/
 sdist/
@@ -57,5 +56,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# db stuff
+*.db
 
 # Created by .ignore support plugin (hsz.mobi)
