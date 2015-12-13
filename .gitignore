@@ -16,7 +16,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+pyfi/
 lib64/
 parts/
 sdist/
