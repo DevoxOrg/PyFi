@@ -2,11 +2,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Numeric, Date, Fo
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///../../foo.db', echo=True)
+_BASE = declarative_base()
 
-Base = declarative_base()
 
-class Account(Base):
+class Account(_BASE):
     __tablename__ = 'accounts'
     id = Column(Integer, primary_key=True)
 
@@ -15,7 +14,8 @@ class Account(Base):
 
     transactions = relationship("Transaction")
 
-class Transaction(Base):
+
+class Transaction(_BASE):
     __tablename__ = 'transactions'
 
     id = Column(Integer, primary_key=True)
@@ -26,6 +26,7 @@ class Transaction(Base):
     date = Column(Date, nullable=False)
     type = Column(String, nullable=False)
 
-print()
 
-Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    engine = create_engine('sqlite:///../../foo.db', echo=True)
+    _BASE.metadata.create_all(engine)
