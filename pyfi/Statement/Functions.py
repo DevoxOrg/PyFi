@@ -6,12 +6,7 @@ TODO: Create a user-defined way of reading a csv.
 """
 
 
-from Statement import Classes
 import copy
-
-numDict = Classes.numDict
-keylist = Classes.keylist
-specials_list = Classes.specials_list
 #////////////////////////////////////////////Start format Standardisation Functions\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 def get_unknowns(account = None, unknowns = None, numbered_dictionary = None):
     '''
@@ -24,7 +19,7 @@ def get_unknowns(account = None, unknowns = None, numbered_dictionary = None):
     :return:
     '''
     global keylist
-    from UI.ui import DialogWidg
+    from pyfi.UI.ui import DialogWidg
 
     transactions = []
     unknowns2 = copy.deepcopy(unknowns)

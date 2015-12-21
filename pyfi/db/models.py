@@ -12,10 +12,9 @@ class Account(_BASE):
     __tablename__ = 'accounts'
     id = Column(Integer, primary_key=True)
 
-    bank = Column(String, nullable=False)
-    customer_name = Column(String, nullable=False)
-
-    transactions = relationship("Transaction")
+    bank_id = Column(Integer, ForeignKey('banks.id'), nullable=False)
+    account_holder = Column(String, nullable=False)
+    date_opened = Column(Date, nullable=True)
 
 
 class Transaction(_BASE):
@@ -28,8 +27,10 @@ class Transaction(_BASE):
 
     id = Column(Integer, primary_key=True)
 
-    account = Column(Integer, ForeignKey('accounts.id'), nullable=False)
-    type = Column(String, ForeignKey('types.id'), nullable=False)
+    account_id = Column(Integer, ForeignKey('accounts.id'), nullable=False)
+    account = relationship("Account", back_populates='transactions')
+
+    type = Column(Integer, ForeignKey('types.id'), nullable=False)
 
     # Some transactions add useless data on to the name. We remove this.
     # So store original name as true_name and used name as name.
@@ -58,7 +59,7 @@ class Name_To_Type(_BASE):
     __tablename__ = 'ref_types_to_names'
 
     name = Column(String, nullable=False, primary_key=True)
-    type_id = Column(String, ForeignKey('types.id'), nullable=False)
+    type_id = Column(Integer, ForeignKey('types.id'), nullable=False)
 
 
 class Name_Patterns(_BASE):
@@ -75,6 +76,14 @@ class Name_Patterns(_BASE):
     __tablename__ = 'name_patterns'
 
     pattern = Column(String, nullable=False, primary_key=True)
+    name = Column(String, nullable=False)
+
+
+class Bank(_BASE):
+    __table__name = 'banks'
+
+    id = Column(Integer, nullable=False, primary_key=True)
+
     name = Column(String, nullable=False)
 
 if __name__ == '__main__':
