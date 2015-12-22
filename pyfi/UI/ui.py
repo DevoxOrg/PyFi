@@ -1,12 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'main.ui'
-#
-# Created: Mon Sep 15 13:11:21 2014
-#      by: pyside-uic 0.2.15 running on PySide 1.2.2
-#
-# WARNING! All changes made in this file will be lost!
-
+#FIXME: made loads of changes, the UI may be intact but the data and content should be completely broken. Needs rewriting,
 
 """
 Set up the major ui widgets and their functions - large file, consider splitting
@@ -33,8 +25,6 @@ import matplotlib.pyplot as plt
 import pickle, datetime, sys
 
 sys.path.append('../')
-
-from Statement.Classes import get_all, Account, TypeObject, keylist_cleaner, list_grabber, numDict
 #/////////////////////////////////////////////// Start Popup/Dialog classes.py \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 redfont = QtGui.QBrush()
@@ -190,10 +180,6 @@ class Account_Popup(object):
                     self.gridLayout.addWidget(self.error2, 1,4,1,1)
             errored = True
 
-        if not errored:
-            typical = Account(name = typ, bank = self.comboBox.currentText(), savings = self.checkBox.isChecked())
-            with open("../core/accounts/" + typ + ".pkl", "wb") as new_type:
-                pickle.dump(typical, new_type, protocol=pickle.HIGHEST_PROTOCOL)
             Dialog.accept()
 
     def retranslateUi(self, Dialog):
@@ -252,11 +238,7 @@ class Type_Popup(object):
                     self.error = QtGui.QLabel("Missing answer", Dialog)
                     self.gridLayout.addWidget(self.error, 0,2,1,1)
         else:
-            typical = TypeObject(typ = typ)
-            with open("../core/types/" + typ + ".pkl", "wb") as new_type:
-                pickle.dump(typical, new_type, protocol=pickle.HIGHEST_PROTOCOL)
-            #numDict[typ] = 0
-            Dialog.accept()
+            pass
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
@@ -396,7 +378,6 @@ class DialogWidg(QtGui.QDialog):
 class StatementView(object):
     def __init__(self, accounts):
         self.accounts = accounts
-        self.numbered_dictionary = numDict
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(563, 524)
@@ -492,7 +473,7 @@ class StatementView(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
 
-        all_things = get_all(True)
+        all_things = None
 
         all_keys = list(all_things.keys())
 
@@ -537,7 +518,7 @@ class StatementView(object):
         else:
             #print(2)
             self.rowcnt = self.popup_statement()
-            all_things = get_all(True)
+            all_things = None
 
             all_keys = list(all_things.keys())
 
@@ -620,18 +601,16 @@ class StatementView(object):
         QtCore.QObject.connect(self.pushButton, QtCore.SIGNAL('clicked()'), self.popup_statement)
 
     def popup_statement(self):
-        from main import start
         self.pops = DialogWidg('Statement', accounts=self.accounts)
         if self.pops.exec_():
             account, filepath = self.pops.widg.get_values()
-            start(statement_file = filepath, account = account)
 
             return self.fill_table()
 
     def fill_table(self):
         beginning, end, types, accounts = self.find_filters()
 
-        all_things = get_all(False, beginning, end, types, accounts)
+        all_things = None
 
         #print(beginning,end,types,accounts)
 
@@ -1095,7 +1074,7 @@ class StatsView(object):
 
         #label setting - numbers
 
-        self.loaded = get_all()
+        self.loaded = None
 
         self.months = {1:{"in":Decimal(0), "out":Decimal(0), "obj":[self.in_jan_num, self.spend_jan_num]},
                       2:{"in":Decimal(0), "out":Decimal(0), "obj":[self.in_feb_num, self.spend_feb_num]},
@@ -1276,8 +1255,8 @@ class TableView(object):
         self.tabs.setTabShape(QtGui.QTabWidget.Rounded)
         self.tabs.setMovable(True)
 
-        self.keylist, self.numDict = list_grabber()
-        self.data = get_all()
+        self.keylist, self.numDict = None, None
+        self.data = None
         self.dates = list(self.data.keys())
         self.dates.sort()
 
@@ -1461,7 +1440,7 @@ class GraphicalView(QtGui.QWidget):
 
     def plot(self, graph_type):
         ''' plot some random stuff '''
-        self.data = get_all()
+        self.data = None
         self.axis = {}
 
         '''for date in self.data:
@@ -1590,11 +1569,9 @@ class Ui_MainWindow(object):
         self.actionImport.triggered.connect(self.popup_statement)
 
     def popup_statement(self):
-        from main import start
         self.pops = DialogWidg('Statement', accounts=self.accounts)
         if self.pops.exec_():
             account, filepath = self.pops.widg.get_values()
-            start(statement_file = filepath, account = account)
 
     def popup_type(self):
         self.pops = DialogWidg('Type')
@@ -1603,14 +1580,6 @@ class Ui_MainWindow(object):
     def popup_account(self):
         self.pops = DialogWidg('Account')
         self.pops.exec_()
-
-    def write_csvs(self):
-        #print(1)
-        from main import csv_writer
-        beginning, end, types, accounts = self.find_filters()
-
-        self.csv_writer(False, beginning, end, types, accounts)
-        #print(2)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None,

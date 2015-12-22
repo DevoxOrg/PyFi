@@ -1,6 +1,7 @@
 import csv
 
 from pyfi.db.session import create_session
+from pyfi.db.models import Transaction
 
 class base_parser:
     """
@@ -24,4 +25,6 @@ class base_parser:
         pass
 
     def insert_into_db(self):
-        pass
+        session = create_session()
+        session.add_all(self.transactions)
+        session.commit()
