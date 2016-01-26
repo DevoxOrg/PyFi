@@ -13,8 +13,6 @@ import calendar
 
 #//////////////////////////////////// Start global variable functions and creation\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-#print(os.getcwd())
-
 if 'Statement' in os.getcwd():
     path = '../../'
 else:

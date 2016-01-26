@@ -1,3 +1,5 @@
+import re
+
 from sqlalchemy import create_engine, Column, Integer, String, Numeric, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -16,6 +18,8 @@ class Account(_BASE):
     account_holder = Column(String, nullable=False)
     date_opened = Column(Date, nullable=True)
 
+    transactions = relationship('Transaction', back_populates='account')
+
 
 class Transaction(_BASE):
     """
@@ -28,7 +32,7 @@ class Transaction(_BASE):
     id = Column(Integer, primary_key=True)
 
     account_id = Column(Integer, ForeignKey('accounts.id'), nullable=False)
-    account = relationship("Account", back_populates='transactions')
+    account = relationship('Account', back_populates='transactions')
 
     type = Column(Integer, ForeignKey('types.id'), nullable=False)
 
@@ -40,8 +44,31 @@ class Transaction(_BASE):
     amount = Column(Numeric(18, 2), nullable=False)
     date = Column(Date, nullable=False)
 
+    def calculate_type(self):
+        """
+        Transaction names and types aren't so simple.
 
-class Transaction_Type(_BASE):
+        We need to find out the standard name for a transaction, using a list of regexes.
+
+        We also need to find the type of a transaction through the then assigned name.
+
+        :return: None
+        """
+        from db.session import create_session
+
+        session = create_session()
+
+        for row in session.query(NamePatterns):
+            if re.match(row.pattern, self.true_name):
+                self.name = row.name
+                break
+        else:
+            self.name = self.true_name
+
+        self.type = session.query(NameToType).filter_by(name=self.name).one()
+
+
+class TransactionType(_BASE):
     """
     Class representing the Types table holding all the possible types we currently have.
     """
@@ -51,7 +78,7 @@ class Transaction_Type(_BASE):
     type_name = Column(String, nullable=False)
 
 
-class Name_To_Type(_BASE):
+class NameToType(_BASE):
     """
     This Class represents a reference table for describing which type of transaction a name falls under.
     Using this means we don't have to continually input the type a transaction is.
@@ -62,7 +89,7 @@ class Name_To_Type(_BASE):
     type_id = Column(Integer, ForeignKey('types.id'), nullable=False)
 
 
-class Name_Patterns(_BASE):
+class NamePatterns(_BASE):
     """
     Class to hold all the regex patterns for generic names.
 
@@ -83,9 +110,12 @@ class Bank(_BASE):
     __table__name = 'banks'
 
     id = Column(Integer, nullable=False, primary_key=True)
-
     name = Column(String, nullable=False)
+    parser = Column
 
-if __name__ == '__main__':
+def main():
     engine = create_engine('sqlite:///../../foo.db', echo=True)
     _BASE.metadata.create_all(engine)
+
+if __name__ == '__main__':
+    main()
