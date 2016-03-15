@@ -1,76 +1,4 @@
-"""
-The primary module setting up the classes of the transaction system, as well as their relevant functions.
-"""
-# TODO: consider a new class, timespan or some such. Holds full_dates in a 2D numpy array ordered by weeks.
-# Prepend and append blank dates to the array to make sure all weeks are full.
-
-from decimal import Decimal
-import csv
-import os
-import pickle
 import datetime
-import calendar
-
-#//////////////////////////////////// Start global variable functions and creation\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-if 'Statement' in os.getcwd():
-    path = '../../'
-else:
-    path = '../'
-
-def date_sorter(date, order=0):
-    """
-    A function which takes a date in a specific format (year, month, day)
-    returns the year month and day in seperate strings.
-
-    An optional second parameter indicates how the date is originally organised.
-     0 (default) = YYYY/MM/DD. 1 = DD/MM/YYYY. 2 = MM/DD/YYYY.
-
-    The symbol separating the numbers is irrelevant,
-    as long as there is a character (including whitespace) separating the values.
-
-    (str, [int]) --->  tup
-
-    >>> date_sorter("2014/12/31")
-    datetime.date(2014, 12, 31))
-    >>> date_sorter("31-12-2014", 1)
-    datetime.date(2014, 12, 31))
-    >>> date_sorter("12.31.2014", 2)
-    datetime.date(2014, 12, 31))
-    """
-    if order == 0:
-        day = datetime.date(int(date[:4]), int(date[5:7]), int(date[8:]))
-    elif order == 1:
-        day = datetime.date(int(date[6:]), int(date[3:5]), int(date[:2]))
-    elif order == 2:
-        day = datetime.date(int(date[6:]), int(date[:2]), int(date[3:5]))
-    else:
-        print(
-            'Illegal parameter\n\nParameter 2 (order): {0} is an unspecified value.\n\n'.format(str(order))
-            + 'Value must be between 0-2.\n\nNone returned.')
-        day = None
-    return day
-
-
-def date_cleaner(date_list):
-    """
-    A function which cleans out the datelist to hold every day 
-    between the two days regardless of whether it exists within the file.
-
-    (lst) ---> lst
-
-    >>>date_cleaner([datetime.date(2014, 3, 24), datetime.date(2014, 3, 20)])
-    [datetime.date(2014, 3, 20), datetime.date(2014, 3, 21), datetime.date(2014, 3, 22), datetime.date(2014, 3, 23), datetime.date(2014, 3, 24)]
-    """
-    
-    new_dates = []
-
-    date_difference = date_list[0] - date_list[len(date_list)-1]
-
-    for day in range(date_difference.days+1):
-        new_dates.append(date_list[len(date_list)-1]+datetime.timedelta(days=day))
-
-    return new_dates
 
 
 class QifItem:
@@ -129,12 +57,8 @@ class QifItem:
         for key in keys:
             items.append(self.order[key])
 
-        keys = str(keys)
-        keys.rstrip("]")
-        keys.lstrip("[")
-        items = str(items)
-        items.rstrip("]")
-        items.lstrip("[")
+        keys = str(keys)[1:-2]
+        items = str(items)[1:-2]
         return keys + "\n" + items
 
 
@@ -153,4 +77,3 @@ def make_qifs(filepath):
             qifs.append(QifItem(qif.split("\n")))
 
     return qifs
-
