@@ -4,14 +4,11 @@
 Set up the major ui widgets and their functions - large file, consider splitting
 """
 
-
-from csv import reader
 from decimal import Decimal
 from os import listdir
 
 from PySide import QtCore, QtGui
 
-import numpy as np
 import matplotlib
 
 matplotlib.use('QT4Agg')
@@ -19,12 +16,10 @@ matplotlib.rcParams['backend.qt4'] = 'PySide'
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import  Figure
 import matplotlib.pyplot as plt
 
-import pickle, datetime, sys
+import datetime
 
-sys.path.append('../')
 #/////////////////////////////////////////////// Start Popup/Dialog classes.py \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 redfont = QtGui.QBrush()
@@ -483,26 +478,22 @@ class StatementView(object):
         debugcount = 0
         for key in all_keys:
             debugcount +=1
-            try:
-                for innerKey in all_things[key].transactions:
-                    date_add = str(key.year)+'/'
-                    if len(str(key.month)) == 1:
-                        date_add = date_add + '0' + str(key.month)+'/'
-                    else:
-                        date_add = date_add+str(key.month)+'/'
-                    if len(str(key.day)) == 1:
-                        date_add = date_add + '0' + str(key.day)
-                    else:
-                        date_add = date_add+str(key.day)
+            for innerKey in all_things[key].transactions:
+                date_add = str(key.year)+'/'
+                if len(str(key.month)) == 1:
+                    date_add = date_add + '0' + str(key.month)+'/'
+                else:
+                    date_add = date_add+str(key.month)+'/'
+                if len(str(key.day)) == 1:
+                    date_add = date_add + '0' + str(key.day)
+                else:
+                    date_add = date_add+str(key.day)
 
-                    all_list.append([date_add,
-                                     innerKey.account,
-                                     innerKey.type,
-                                     innerKey.name,
-                                     innerKey.amount])
-            except AttributeError as e:
-                import pdb; pdb.set_trace()
-                raise e
+                all_list.append([date_add,
+                                 innerKey.account,
+                                 innerKey.type,
+                                 innerKey.name,
+                                 innerKey.amount])
 
 
         self.colcnt = 5
