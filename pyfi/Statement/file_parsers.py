@@ -1,6 +1,7 @@
 import csv
 import datetime
 import decimal
+from xml.etree.cElementTree import iterparse
 
 from pyfi.db.models import Transaction
 from pyfi.db.session import create_session
@@ -26,7 +27,7 @@ class BaseParser:
         :return: None
         """
         if account is None:
-            raise NotImplementedError("Account is None! Can't insert transactions into nothing!")
+            raise ValueError("Account is None! Can't insert transactions into nothing!")
 
         self.account = account
 
@@ -78,6 +79,7 @@ class HSBCParser(BaseParser):
 
                 self.transactions.append(transaction)
 
+
 class HalifaxParser(BaseParser):
 
     def parse(self):
@@ -100,7 +102,7 @@ class HalifaxParser(BaseParser):
                 elif row[6]:
                     amount = decimal.Decimal(row[6])
                 else:
-                    raise NotImplementedError("No transaction amount!")
+                    raise ValueError("No transaction amount!")
 
                 name = row[4]
 
@@ -110,3 +112,13 @@ class HalifaxParser(BaseParser):
                                           account=self.account)
 
                 self.transactions.append(transaction)
+
+
+class OFXParser(BaseParser):
+    # These are going to need iterparse
+    pass
+
+
+class QIFParser(BaseParser):
+    # These are going to need iterparse
+    pass
