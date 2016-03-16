@@ -7,7 +7,7 @@ Set up the major ui widgets and their functions - large file, consider splitting
 from decimal import Decimal
 from os import listdir
 
-from PySide import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 import matplotlib
 
